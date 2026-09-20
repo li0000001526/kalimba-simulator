@@ -343,7 +343,16 @@ footer{margin-top:auto;padding-top:26px;text-align:center;font-size:11px;color:#
     if (l === 'zh-cn' || l === 'zh') return 'zh';
     return (l === 'en' || l === 'ja' || l === 'ko' || l === 'es') ? l : 'zh';
   }
-  function curLang() { return normKey(document.documentElement.getAttribute('lang')); }
+  // The app writes <html lang> with a buggy mapping (zh falls to 'es'), so
+  // html[lang] is NOT the source of truth. Read the app's own state instead:
+  // the active switcher button (#lang button.on -> data-lang) then localStorage.
+  function curLang() {
+    var on = document.querySelector('#lang button.on');
+    if (on && on.dataset.lang) return normKey(on.dataset.lang);
+    var ls = null;
+    try { ls = localStorage.getItem('kalimba.lang'); } catch (e) {}
+    return normKey(ls || 'zh');
+  }
   function restamp() {
     var k = curLang(), d = LANGS[k] || LANGS['zh'];
     document.title = d.tab;
